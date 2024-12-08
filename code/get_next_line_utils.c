@@ -6,16 +6,18 @@
 /*   By: alex <alex@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 13:22:43 by alex              #+#    #+#             */
-/*   Updated: 2024/11/30 17:08:13 by alex             ###   ########.fr       */
+/*   Updated: 2024/12/08 01:38:49 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line_bonus.h"
+#include "get_next_line.h"
 
 void	***create_tree_branches(void ***tree, int fd)
 {
 	int	t;
 
+	if (fd < 0 || BUFFER_SIZE <= 0 || fd > MAX_FD)
+		return (NULL);
 	if (!tree)
 	{
 		t = 0;
@@ -111,7 +113,7 @@ void	*ft_realloc_fill_ssline(void **table, ssize_t new_columns,
 	return (table[target]);
 }
 
-void	*free_all(void ***tree, char *buffer)
+void	***free_all(void ***tree, char *buffer)
 {
 	int	i;
 	int	j;

@@ -6,7 +6,7 @@
 /*   By: alex <alex@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 13:22:43 by alex              #+#    #+#             */
-/*   Updated: 2024/11/30 17:07:53 by alex             ###   ########.fr       */
+/*   Updated: 2024/12/08 03:12:47 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@ void	***create_tree_branches(void ***tree, int fd)
 {
 	int	t;
 
+	if (fd < 0 || BUFFER_SIZE <= 0 || fd > MAX_FD)
+		return (NULL);
 	if (!tree)
 	{
 		t = 0;
@@ -111,28 +113,28 @@ void	*ft_realloc_fill_ssline(void **table, ssize_t new_columns,
 	return (table[target]);
 }
 
-void	*free_all(void ***tree, char *buffer)
+void	***free_all(void ***tree, char *buffer, int fd, int j)
 {
 	int	i;
-	int	j;
 
-	i = 0;
-	j = 0;
+	i = -1;
 	if (tree)
 	{
-		while (i <= 2 || tree[i] != NULL)
+		while (++i <= 2 || tree[i] != NULL)
 		{
 			if (tree[i])
 			{
-				while (tree[i][j] != NULL)
+				tree = dispatch_table_lines(tree, i, 0);
+				while ((tree[i][j] != NULL) || j == 3)
 				{
+					if (j == 3 && i != fd && tree[i][j + 1] != NULL)
+						j++;
 					free(tree[i][j]);
 					j++;
 				}
 				free(tree[i]);
 			}
 			j = 0;
-			i++;
 		}
 	}
 	if (buffer)
