@@ -6,7 +6,7 @@
 /*   By: alex <alex@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 13:08:35 by alex              #+#    #+#             */
-/*   Updated: 2024/12/08 03:15:29 by alex             ###   ########.fr       */
+/*   Updated: 2024/12/10 00:38:58 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,52 +14,52 @@
 
 char	*get_next_line(int fd)
 {
-	static void	***tree;
+	static void	**tree[MAX_FD + 4];
 	char		*buffer;
 
 	buffer = NULL;
-	tree = create_tree_branches(tree, fd);
-	if (!tree)
+	tree[fd] = create_new_branch(tree[fd], fd);
+	if (!tree[fd])
 	{
-		tree = free_all(tree, buffer, fd, 0);
+		tree[fd] = free_all(tree[fd], buffer);
 		return (NULL);
 	}
 	buffer = (char *)malloc(BUFFER_SIZE);
 	if (!buffer)
 	{
-		tree = free_all(tree, buffer, fd, 0);
+		tree[fd] = free_all(tree[fd], buffer);
 		return (NULL);
 	}
-	tree = read_imput_controler(tree, buffer, fd);
-	if (!tree || !tree[fd] || !tree[fd][3])
+	tree[fd] = read_imput_controler(tree[fd], buffer, fd);
+	if (!tree[fd] || !tree[fd][3])
 	{
-		tree = free_all(tree, buffer, fd, 0);
+		tree[fd] = free_all(tree[fd], buffer);
 		return (NULL);
 	}
 	return (free(buffer), (char *)tree[fd][3]);
 }
 
-void	***read_imput_controler(void ***tree, char *buffer, int fd)
+void	**read_imput_controler(void **table, char *buffer, int fd)
 {
 	ssize_t	readed;
 	ssize_t	len_out_line;
 
-	if (tree[fd][3] != NULL)
-		tree = dispatch_table_lines(tree, fd, 1);
-	len_out_line = ((ssize_t *)tree[fd][0])[0];
-	while (!tree[fd][3] || ((char *)tree[fd][3])[len_out_line - 1] != '\n')
+	if (table[3] != NULL)
+		table = dispatch_table_lines(table);
+	len_out_line = ((ssize_t *)table[0])[0];
+	while (!table[3] || ((char *)table[3])[len_out_line - 1] != '\n')
 	{
 		readed = read(fd, buffer, BUFFER_SIZE);
 		if (readed <= 0)
 		{
 			break ;
 		}
-		tree[fd] = ft_split_lines(tree[fd], buffer, readed);
-		if (!tree[fd] || !tree[fd][3])
+		table = ft_split_lines(table, buffer, readed);
+		if (!table || !table[3])
 			return (NULL);
-		len_out_line = ((ssize_t *)tree[fd][0])[0];
+		len_out_line = ((ssize_t *)table[0])[0];
 	}
-	return (tree);
+	return (table);
 }
 
 void	**ft_split_lines(void **ta, char *s, ssize_t readed)
@@ -117,28 +117,15 @@ char	*l(char *line, char *buffer, ssize_t len, ssize_t cut)
 	return (ptr);
 }
 
-void	***dispatch_table_lines(void ***tree, int fd, char f)
+void	**dispatch_table_lines(void **table)
 {
 	ssize_t	i;
 
 	i = -1;
-	if (f)
+	while (table[++i + 3] != NULL)
 	{
-		while (tree[fd][++i + 3] != NULL)
-		{
-			tree[fd][i + 3] = tree[fd][i + 3 + 1];
-			((ssize_t *)tree[fd][0])[i] = ((ssize_t *)tree[fd][0])[i + 1];
-		}
-		return (tree);
+		table[i + 3] = table[i + 3 + 1];
+		((ssize_t *)table[0])[i] = ((ssize_t *)table[0])[i + 1];
 	}
-	else
-	{
-		tree[fd][3] = NULL;
-		while (tree[fd][++i + 3] != NULL || i == 3)
-		{
-			tree[fd][i + 3] = tree[fd][i + 3 + 1];
-			((ssize_t *)tree[fd][0])[i] = ((ssize_t *)tree[fd][0])[i + 1];
-		}
-		return (tree);
-	}
+	return (table);
 }

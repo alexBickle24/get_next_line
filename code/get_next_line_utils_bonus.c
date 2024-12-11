@@ -6,64 +6,39 @@
 /*   By: alex <alex@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 13:22:43 by alex              #+#    #+#             */
-/*   Updated: 2024/12/08 03:12:47 by alex             ###   ########.fr       */
+/*   Updated: 2024/12/10 01:13:23 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line_bonus.h"
 
-void	***create_tree_branches(void ***tree, int fd)
-{
-	int	t;
-
-	if (fd < 0 || BUFFER_SIZE <= 0 || fd > MAX_FD)
-		return (NULL);
-	if (!tree)
-	{
-		t = 0;
-		tree = (void ***)malloc(sizeof(void **) * (MAX_FD + 4));
-		if (!tree)
-			return (NULL);
-		while (t < (MAX_FD + 4))
-		{
-			tree[t] = NULL;
-			++t;
-		}
-	}
-	if (!tree[fd] && tree && fd >= 0)
-	{
-		tree[fd] = create_new_branch(tree, fd);
-		if (!tree)
-			return (NULL);
-	}
-	return (tree);
-}
-
-void	**create_new_branch(void ***tree, int fd)
+void	**create_new_branch(void **table, int fd)
 {
 	ssize_t	i;
 	ssize_t	line;
 
-	i = 0;
-	line = 0;
-	tree[fd] = (void **)malloc(sizeof(void *) * 5);
-	if (!tree[fd])
+	if (fd < 0 || BUFFER_SIZE <= 0 || fd > (MAX_FD + 3))
 		return (NULL);
-	while (i < 5)
+	i = -1;
+	line = 0;
+	if (!table)
 	{
-		tree[fd][i] = NULL;
-		i++;
-	}
-	while (line <= 2)
-	{
-		tree[fd][line] = (void *)malloc(sizeof(ssize_t) * 2);
-		if (!tree[fd][line])
+		table = (void **)malloc(sizeof(void *) * 5);
+		if (!table)
 			return (NULL);
-		((ssize_t *)tree[fd][line])[0] = 0;
-		((ssize_t *)tree[fd][line])[1] = 0;
-		line++;
+		while (++i < 5)
+			table[i] = NULL;
+		while (line <= 2)
+		{
+			table[line] = (void *)malloc(sizeof(ssize_t) * 2);
+			if (!table[line])
+				return (NULL);
+			((ssize_t *)table[line])[0] = 0;
+			((ssize_t *)table[line])[1] = 0;
+			line++;
+		}
 	}
-	return (tree[fd]);
+	return (table);
 }
 
 void	**ft_redim_fill_table(void **table, ssize_t new_lines, ssize_t lines)
@@ -113,31 +88,20 @@ void	*ft_realloc_fill_ssline(void **table, ssize_t new_columns,
 	return (table[target]);
 }
 
-void	***free_all(void ***tree, char *buffer, int fd, int j)
+void	**free_all(void **table, char *buffer)
 {
 	int	i;
 
-	i = -1;
-	if (tree)
+	i = 0;
+	if (table)
 	{
-		while (++i <= 2 || tree[i] != NULL)
+		while (table[i] != NULL)
 		{
-			if (tree[i])
-			{
-				tree = dispatch_table_lines(tree, i, 0);
-				while ((tree[i][j] != NULL) || j == 3)
-				{
-					if (j == 3 && i != fd && tree[i][j + 1] != NULL)
-						j++;
-					free(tree[i][j]);
-					j++;
-				}
-				free(tree[i]);
-			}
-			j = 0;
+			free(table[i]);
+			i++;
 		}
 	}
 	if (buffer)
 		free(buffer);
-	return (free(tree), NULL);
+	return (free(table), NULL);
 }
